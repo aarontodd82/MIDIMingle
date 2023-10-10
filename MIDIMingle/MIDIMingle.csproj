@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Combinations.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Combinations.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.IO.Ports" Version="8.0.0-rc.1.23419.4" />
+  </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties combinations_1json__JsonSchema="https://geojson.org/schema/GeoJSON.json" /></VisualStudio></ProjectExtensions>
+
+</Project>

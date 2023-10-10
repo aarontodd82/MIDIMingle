@@ -1,0 +1,28 @@
+{
+  "LastSelectedSet": "DefaultSet",
+  "Sets": {
+    "DefaultSet": {
+      "Combinations": {
+        "111": 55,
+        "100": 55,
+        "011": 57,
+        "001": 59,
+        "010": 60
+      },
+      "Alterations": {
+
+      }
+    },
+    "AlternativeSet": {
+      "Combinations": {
+        "100": 65,
+        "010": 67,
+        "001": 69,
+        "110": 66
+      },
+      "Alterations": {
+        "010": -1
+      }
+    }
+  }
+}
