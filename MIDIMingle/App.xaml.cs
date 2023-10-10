@@ -14,6 +14,8 @@ namespace MIDIMingle
     /// </summary>
     public partial class App : Application
     {
+        public static readonly string VIRTUALPORTNAME = "Ardiphone";
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -29,7 +31,7 @@ namespace MIDIMingle
 
             // Register your services here
             services.AddSingleton<IArduinoService, HandleArduinoCom>();
-            services.AddSingleton<IMidiService>(_ => new MidiService("MIDIMingle"));
+            services.AddSingleton<IMidiService>(_ => new MidiService(VIRTUALPORTNAME));
             services.AddSingleton<IButtonStateService, ButtonStateService>();
             services.AddSingleton<MainWindow>();
 

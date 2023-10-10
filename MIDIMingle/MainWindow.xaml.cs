@@ -2,7 +2,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace MIDIMingle
 {
@@ -18,10 +20,13 @@ namespace MIDIMingle
         {
             InitializeComponent();
 
-            _arduinoService = arduinoService ?? throw new ArgumentNullException(nameof(arduinoService));
             _midiService = midiService ?? throw new ArgumentNullException(nameof(midiService));
+            var midiOutDevices = _midiService.GetMidiOutDevices().ToList();
+            midiOutDevices.Insert(0, "Virtual MIDI Port"); // Assuming "Virtual MIDI Port" is the name of your virtual port
+            MidiOutputDropdown.ItemsSource = midiOutDevices;
+            MidiOutputDropdown.SelectedIndex = 0; // Default selection is the virtual port
 
-
+            _arduinoService = arduinoService ?? throw new ArgumentNullException(nameof(arduinoService));
             _arduinoService.DataReceivedEvent += HandleArduino_DataReceivedEvent;
 
             _buttonStateService = buttonStateService ?? throw new ArgumentNullException(nameof(buttonStateService));
@@ -49,9 +54,44 @@ namespace MIDIMingle
         {
             var midiNote = _buttonStateService.GetMidiNoteFromButtons(buttonStates);
             Trace.WriteLine($"MIDI Note: {midiNote}");
-           
-            _midiService.PlayMidiNote(midiNote);
+
+            midiNote = _midiService.PlayMidiNote(midiNote);
+
+            Dispatcher.Invoke(() =>
+            {
+                MidiNoteLabel.Content = midiNote.ToString();
+            });
+
+            
         }
+
+        private void MidiChannelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (MidiChannelComboBox.SelectedItem is ComboBoxItem selectedItem && _midiService != null)
+            {
+                int selectedChannel;
+                if (int.TryParse(selectedItem.Content.ToString(), out selectedChannel))
+                {
+                    _midiService.Channel = selectedChannel - 1; // Subtracting 1 because MIDI channels in code are 0-15
+                }
+            }
+        }
+
+
+        private void IntegerUpDown_ValueChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            // Handle the value change here
+            int? newValue = e.NewValue as int?;
+            if (newValue.HasValue && _midiService != null)
+            {
+                _midiService.Transpose = newValue.Value;
+            }
+
+        }
+
+
+
+
 
         private void OpenFingeringChartEditor(object sender, RoutedEventArgs e)
         {
@@ -61,6 +101,15 @@ namespace MIDIMingle
             var allSetsData = JsonConvert.DeserializeObject<AllSetsData>(jsonData);
             var editor = new FingeringChartEditor(fullPath, allSetsData.LastSelectedSet, _buttonStateService);
             editor.ShowDialog();
+        }
+
+        private void MidiOutputDropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_midiService != null)
+            {
+                string selectedDevice = (string)MidiOutputDropdown.SelectedItem;
+                _midiService.SwitchMidiOut(selectedDevice);
+            }
         }
 
     }
