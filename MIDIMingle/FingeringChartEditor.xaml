@@ -1,10 +1,16 @@
 ﻿<Window x:Class="MIDIMingle.FingeringChartEditor"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Fingering Chart Editor" Height="600" Width="800">
+        Title="Fingering Chart Editor" Height="600" Width="800"
+        xmlns:local="clr-namespace:MIDIMingle">
+    <Window.Resources>
+        <local:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <local:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -38,7 +44,7 @@
                     <GridViewColumn Header="MIDI Note">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBox Text="{Binding MidiNote}" Width="50" />
+                                <TextBox Text="{Binding MidiNote}" Width="50" Visibility="{Binding IsAlteration, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
@@ -49,12 +55,28 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
+                    <GridViewColumn Header="Is Alteration">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsAlteration}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Alteration Value">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding AlterationValue}" Width="50" Visibility="{Binding IsAlteration, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>
+        
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
-            <Button Content="Add Row" Click="OnAddRow" Width="100" Margin="0 0 10 0"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+            <Button Content="Add Alteration" Click="OnAddEntryRow" Width="100" Margin="0 0 10 0" Tag="Alteration"/>
+            <Button Content="Add Combination" Click="OnAddEntryRow" Width="100" Margin="0 0 10 0"/>
             <Button Content="Apply" Click="OnApply" Width="100"/>
         </StackPanel>
     </Grid>

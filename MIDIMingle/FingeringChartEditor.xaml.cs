@@ -40,7 +40,20 @@ namespace MIDIMingle
                         Key1 = entry.Key[0] == '1',
                         Key2 = entry.Key.Length > 1 && entry.Key[1] == '1',
                         Key3 = entry.Key.Length > 2 && entry.Key[2] == '1',
-                        MidiNote = entry.Value
+                        MidiNote = entry.Value,
+                        IsAlteration = false,
+                    });
+                }
+
+                foreach (var entry in _allData.Sets[setName].Alterations)
+                {
+                    _currentData.Add(new CombinationEntry
+                    {
+                        Key1 = entry.Key[0] == '1',
+                        Key2 = entry.Key.Length > 1 && entry.Key[1] == '1',
+                        Key3 = entry.Key.Length > 2 && entry.Key[2] == '1',
+                        IsAlteration = true,
+                        AlterationValue = entry.Value
                     });
                 }
                 _buttonStateService.LoadSet(_filePath, setName);
@@ -81,16 +94,31 @@ namespace MIDIMingle
 
         }
 
-        private void OnAddRow(object sender, RoutedEventArgs e)
+        private void OnAddEntryRow(object sender, RoutedEventArgs e)
         {
-            _currentData.Add(new CombinationEntry());
+            var entry = new CombinationEntry();
+            if (sender is Button btn && btn.Tag is string tag && tag == "Alteration")
+            {
+                entry.IsAlteration = true;
+            }
+            _currentData.Add(entry);
         }
+
+        private void OnDeleteRow(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is CombinationEntry entry)
+            {
+                _currentData.Remove(entry);
+            }
+        }
+
 
         private void OnApply(object sender, RoutedEventArgs e)
         {
             if (SetsComboBox.SelectedItem is string setName)
             {
                 _allData.Sets[setName].Combinations.Clear();
+                _allData.Sets[setName].Alterations.Clear();
 
                 foreach (var entry in _currentData)
                 {
@@ -98,7 +126,16 @@ namespace MIDIMingle
                         (entry.Key1 ? "1" : "0") +
                         (entry.Key2 ? "1" : "0") +
                         (entry.Key3 ? "1" : "0");
-                    _allData.Sets[setName].Combinations[keyCombination] = entry.MidiNote;
+
+                    if (entry.IsAlteration.HasValue && entry.IsAlteration.Value)
+                    {
+                        _allData.Sets[setName].Alterations[keyCombination] = entry.AlterationValue.HasValue ? entry.AlterationValue.Value : 0;
+                    }
+                    else
+                    {
+                        _allData.Sets[setName].Combinations[keyCombination] = entry.MidiNote;
+                    }
+
                 }
 
                 // Serialize the updated _allData and write it back to the JSON file
@@ -114,12 +151,6 @@ namespace MIDIMingle
             public Dictionary<string, int> Alterations { get; set; } = new();
         }
 
-        private void OnDeleteRow(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button && button.DataContext is CombinationEntry entry)
-            {
-                _currentData.Remove(entry);
-            }
-        }
+        
     }
 }

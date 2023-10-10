@@ -6,6 +6,8 @@ public class CombinationEntry : INotifyPropertyChanged
     private bool _key2;
     private bool _key3;
     private int _midiNote;
+    private bool? _isAlteration;
+    private int? _alterationValue;
 
     public bool Key1
     {
@@ -55,6 +57,32 @@ public class CombinationEntry : INotifyPropertyChanged
             {
                 _midiNote = value;
                 OnPropertyChanged(nameof(MidiNote));
+            }
+        }
+    }
+
+    public bool? IsAlteration
+    {
+        get { return _isAlteration; }
+        set
+        {
+            if (_isAlteration != value)
+            {
+                _isAlteration = value;
+                OnPropertyChanged(nameof(IsAlteration));
+            }
+        }
+    }
+
+    public int? AlterationValue
+    {
+        get { return _alterationValue; }
+        set
+        {
+            if (_alterationValue != value)
+            {
+                _alterationValue = value;
+                OnPropertyChanged(nameof(AlterationValue));
             }
         }
     }
