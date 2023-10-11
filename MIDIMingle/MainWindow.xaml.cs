@@ -2,7 +2,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Ports;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -20,13 +22,17 @@ namespace MIDIMingle
         {
             InitializeComponent();
 
+            this.Closing += MainWindow_Closing;
+
             _midiService = midiService ?? throw new ArgumentNullException(nameof(midiService));
+            AllowRetriggerCheckbox.IsChecked = _midiService.AllowRetrigger;
             var midiOutDevices = _midiService.GetMidiOutDevices().ToList();
             midiOutDevices.Insert(0, "Virtual MIDI Port"); // Assuming "Virtual MIDI Port" is the name of your virtual port
             MidiOutputDropdown.ItemsSource = midiOutDevices;
             MidiOutputDropdown.SelectedIndex = 0; // Default selection is the virtual port
 
             _arduinoService = arduinoService ?? throw new ArgumentNullException(nameof(arduinoService));
+            Task.Run(() => _arduinoService.InitializeAsync());
             _arduinoService.DataReceivedEvent += HandleArduino_DataReceivedEvent;
 
             _buttonStateService = buttonStateService ?? throw new ArgumentNullException(nameof(buttonStateService));
@@ -110,6 +116,21 @@ namespace MIDIMingle
                 string selectedDevice = (string)MidiOutputDropdown.SelectedItem;
                 _midiService.SwitchMidiOut(selectedDevice);
             }
+        }
+
+        private void AllowRetriggerCheckbox_Checked(object sender, RoutedEventArgs e)
+        {
+            _midiService.AllowRetrigger = true;
+        }
+
+        private void AllowRetriggerCheckbox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _midiService.AllowRetrigger = false;
+        }
+
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _arduinoService.disconnectArduino();
         }
 
     }

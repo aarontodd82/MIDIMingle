@@ -16,6 +16,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -48,9 +49,13 @@
         <Label Content="Transpose:" Grid.Row="2"/>
         <xctk:IntegerUpDown Value="0" Increment="1" Maximum="48" Minimum="-48" Grid.Row="2" Width="50" HorizontalAlignment="Right" Margin="0,0,20,10" ValueChanged="IntegerUpDown_ValueChanged"/>
 
+        <!-- Allow retrigger -->
+        <Label Content="Allow Retrigger:" Grid.Row="3"/>
+        <CheckBox x:Name="AllowRetriggerCheckbox" Grid.Row="3" Checked="AllowRetriggerCheckbox_Checked" HorizontalAlignment="Right" Margin="0,0,20,10" Unchecked="AllowRetriggerCheckbox_Unchecked"/>
+
         <!-- Display the current MIDI note -->
-        <Label Content="Currently Playing MIDI Note:" Grid.Row="3"/>
-        <Label Name="MidiNoteLabel" Grid.Row="3" HorizontalAlignment="Right" Margin="0,0,20,10" Content="None"/>
+        <Label Content="Currently Playing MIDI Note:" Grid.Row="4"/>
+        <Label Name="MidiNoteLabel" Grid.Row="4" HorizontalAlignment="Right" Margin="0,0,20,10" Content="None"/>
 
         <!-- Open Fingering Chart Editor button -->
         <Button Content="Open Fingering Chart Editor" Click="OpenFingeringChartEditor" Grid.Row="4" HorizontalAlignment="Center" Margin="0,20,0,0"/>
