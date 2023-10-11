@@ -9,8 +9,11 @@ namespace MIDIMingle
     public interface IArduinoService
     {
         event EventHandler<bool[]> DataReceivedEvent;
+        event EventHandler<bool> ConnectedEvent;
 
         void disconnectArduino();
         Task InitializeAsync();
+        Task<int> GetDebounceTimeAsync();
+        Task SetDebounceTimeAsync(int debounceTime);
     }
 }

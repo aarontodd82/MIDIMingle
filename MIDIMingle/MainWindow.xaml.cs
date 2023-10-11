@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace MIDIMingle
 {
@@ -34,12 +35,27 @@ namespace MIDIMingle
             _arduinoService = arduinoService ?? throw new ArgumentNullException(nameof(arduinoService));
             Task.Run(() => _arduinoService.InitializeAsync());
             _arduinoService.DataReceivedEvent += HandleArduino_DataReceivedEvent;
+            _arduinoService.ConnectedEvent += HandleConnectionStatus;
+            _arduinoService.ConnectedEvent += OnArduinoConnected;
+
 
             _buttonStateService = buttonStateService ?? throw new ArgumentNullException(nameof(buttonStateService));
 
             LoadDefaultSet();
 
         }
+
+        private async void OnArduinoConnected(object sender, bool isConnected)
+        {
+            if (isConnected)
+            {
+                await Task.Delay(250); // Give the Arduino a breather after connecting.
+                var debounceTime = await _arduinoService.GetDebounceTimeAsync();
+                Dispatcher.Invoke(() => DebounceTimeUpDown.IsEnabled = true);
+                Dispatcher.Invoke(() => DebounceTimeUpDown.Value = debounceTime);
+            }
+        }
+
 
         private void LoadDefaultSet()
         {
@@ -128,11 +144,40 @@ namespace MIDIMingle
             _midiService.AllowRetrigger = false;
         }
 
+        private async void DebounceTimeUpDown_ValueChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            int? newValue = e.NewValue as int?;
+            if (newValue.HasValue)
+            {
+                await _arduinoService.SetDebounceTimeAsync(newValue.Value);
+            }
+        }
+
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _arduinoService.disconnectArduino();
         }
 
+        private void HandleConnectionStatus(object sender, bool isConnected)
+        {
+            // Check for thread access as events might come from another thread
+            if (!this.Dispatcher.CheckAccess())
+            {
+                this.Dispatcher.Invoke(() => HandleConnectionStatus(sender, isConnected));
+                return;
+            }
+
+            if (isConnected)
+            {
+                ConnectionStatusEllipse.Fill = Brushes.Green;  // Green for connected
+                ConnectionStatusLabel.Content = "Connected";
+            }
+            else
+            {
+                ConnectionStatusEllipse.Fill = Brushes.Red;  // Red for disconnected
+                ConnectionStatusLabel.Content = "Disconnected";
+            }
+        }
     }
 
 }

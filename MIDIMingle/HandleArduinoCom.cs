@@ -26,14 +26,18 @@ namespace MIDIMingle
         private StringBuilder receivedDataBuffer = new StringBuilder();
 
         public event EventHandler<bool[]> DataReceivedEvent;
+        public event EventHandler<bool> ConnectedEvent;
 
         public bool Connected { get; private set; } = false;
 
-        public HandleArduinoCom(int baudRate = 9600)
+        public HandleArduinoCom(int baudRate = 57600)
         {
             serialPort.BaudRate = baudRate;
+            serialPort.Parity = Parity.None;
+            serialPort.DataBits = 8;
+            serialPort.StopBits = StopBits.One;
 
-            pollTimer = new System.Timers.Timer(2000);
+            pollTimer = new System.Timers.Timer(3000);
             pollTimer.Elapsed += PollTimerElapsed;
         }
 
@@ -49,26 +53,36 @@ namespace MIDIMingle
             {
                 foreach (var portName in SerialPort.GetPortNames())
                 {
-                    
+                    if (serialPort.IsOpen)
+                    {
+                        serialPort.Close();
+                    }
+
                     serialPort.PortName = portName;
 
                     try
                     {
                         serialPort.DtrEnable = false;
                         serialPort.Open();
+                        serialPort.DiscardInBuffer();
+                        serialPort.DiscardOutBuffer();
                         await Task.Delay(500);
                         serialPort.WriteLine(HandshakeMessage);
-                           
+
+
                         serialPort.ReadTimeout = 500;  // 500 milliseconds, adjust as necessary
 
-                        var response = serialPort.ReadLine().Trim();
-                        Trace.WriteLine(response);
+                        var response2 = serialPort.ReadLine().Trim();
+                        
 
-                        if (response == HandshakeResponse)
+                        if (response2 == HandshakeResponse)
                         {
                             Connected = true;
                             Trace.WriteLine($"Connected to Arduino on {portName}");
                             break;
+                        } else
+                        {
+                            Trace.WriteLine($"Wrong but received {response2}");
                         }
                     }
                     catch (TimeoutException)
@@ -95,6 +109,7 @@ namespace MIDIMingle
             {
                 try
                 {
+                    OnConnectionChanged(true);
                     serialPort.DataReceived += SerialPort_DataReceived;
                     serialPort.Open();
                     pollTimer.Start();
@@ -142,23 +157,7 @@ namespace MIDIMingle
             }
         }
 
-        public void disconnectArduino()
-        {
-            try
-            {
-                serialPort.WriteLine("GoodbyeArduino");
-                serialPort.Close();
-            } catch (Exception ex)
-            {
-                Trace.WriteLine($"Exception during disconnectArduino: {ex.Message}");
-            }
-            finally
-            {
-                HandleDisconnection();
-            }
-        }
-
-        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+                private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
             {
@@ -196,6 +195,50 @@ namespace MIDIMingle
             }
         }
 
+        public async Task SetDebounceTimeAsync(int milliseconds)
+        {
+            await SendCommandAndWaitForResponse($"SetDebounceTime:{milliseconds}", null);
+        }
+
+        public async Task<int> GetDebounceTimeAsync()
+        {
+            var tcs = new TaskCompletionSource<int>();
+
+            await SendCommandAndWaitForResponse("GetDebounceTime", (response) =>
+            {
+                try
+                {
+                    int result = int.Parse(response);
+                    Trace.WriteLine($"Debounce time from arduino handler: {result}");
+                    tcs.SetResult(result);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Error parsing response: {ex.Message}");
+                    tcs.SetException(ex);
+                }
+            });
+
+            return await tcs.Task;
+        }
+
+        private async Task SendCommandAndWaitForResponse(string command, Action<string> responseHandler)
+        {
+            try
+            {
+                serialPort.WriteLine(command);
+                if (responseHandler != null)
+                {
+                    responseHandlers.Enqueue(responseHandler);
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Exception during SendCommandAndWaitForResponse: {ex.Message}");
+                HandleDisconnection();
+            }
+        }
+
         private void ProcessDataLine(string line)
         {
             if (line.Length == 3)
@@ -214,47 +257,51 @@ namespace MIDIMingle
             DataReceivedEvent?.Invoke(this, data);
         }
 
-        private void HandleDisconnection()
+        protected virtual void OnConnectionChanged(bool isConnected)
+        {
+            ConnectedEvent?.Invoke(this, isConnected);
+        }
+
+        public void disconnectArduino()
         {
             try
             {
-                if (serialPort.IsOpen) serialPort.Close();
-                pollTimer.Stop();
-                Connected = false;
-                StartPortSearch();
+                serialPort.WriteLine("GoodbyeArduino");
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Exception during HandleDisconnection: {ex.Message}");
+                Trace.WriteLine($"Exception during disconnectArduino: {ex.Message}");
             }
+            finally
+            {
+                HandleDisconnection();
+            }
+        }
+
+        private object disconnectionLock = new object();
+
+        private void HandleDisconnection()
+        {
+            lock (disconnectionLock)
+            {
+                try
+                {
+                    if (serialPort.IsOpen)
+                    {
+                        serialPort.DiscardInBuffer();
+                        serialPort.DiscardOutBuffer();
+                        serialPort.Close();
+                    }
+                    pollTimer.Stop();
+                    Connected = false;
+                    OnConnectionChanged(false);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Exception during HandleDisconnection: {ex.Message}");
+                }
+            }
+            StartPortSearch();  // Start the search outside of the lock.
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

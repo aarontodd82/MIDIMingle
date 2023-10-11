@@ -17,6 +17,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -57,8 +58,25 @@
         <Label Content="Currently Playing MIDI Note:" Grid.Row="4"/>
         <Label Name="MidiNoteLabel" Grid.Row="4" HorizontalAlignment="Right" Margin="0,0,20,10" Content="None"/>
 
+
+        <xctk:IntegerUpDown Name="DebounceTimeUpDown" 
+                    Minimum="0" 
+                    Maximum="100" 
+                    Increment="5" 
+                    IsEnabled="false"
+                    ValueChanged="DebounceTimeUpDown_ValueChanged" 
+                    ToolTip="Set debounce time in milliseconds"
+                     Grid.Row="5" HorizontalAlignment="Right" Margin="0,0,20,10"       />
+
         <!-- Open Fingering Chart Editor button -->
-        <Button Content="Open Fingering Chart Editor" Click="OpenFingeringChartEditor" Grid.Row="4" HorizontalAlignment="Center" Margin="0,20,0,0"/>
+        <Button Content="Open Fingering Chart Editor" Click="OpenFingeringChartEditor" Grid.Row="6" HorizontalAlignment="Center" Margin="0,20,0,0"/>
+
+
+        <!-- Connection Status Ellipse and Label -->
+        <Ellipse Name="ConnectionStatusEllipse" Grid.Row="7" Width="20" Height="20" Fill="Red" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+        <Label Name="ConnectionStatusLabel" Content="Disconnected" Grid.Row="7" HorizontalAlignment="Right" Margin="0,0,30,0" VerticalAlignment="Bottom"/>
+
+ 
 
     </Grid>
 </Window>
