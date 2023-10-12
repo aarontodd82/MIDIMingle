@@ -33,6 +33,8 @@ namespace MIDIMingle
             if (SetsComboBox.SelectedItem is string setName)
             {
                 _currentData.Clear();
+
+                // Load combinations
                 foreach (var entry in _allData.Sets[setName].Combinations)
                 {
                     _currentData.Add(new CombinationEntry
@@ -41,21 +43,23 @@ namespace MIDIMingle
                         Key2 = entry.Key.Length > 1 && entry.Key[1] == '1',
                         Key3 = entry.Key.Length > 2 && entry.Key[2] == '1',
                         MidiNote = entry.Value,
-                        IsAlteration = false,
+                        IsAlteration = false
                     });
                 }
 
+                // Load alterations
                 foreach (var entry in _allData.Sets[setName].Alterations)
                 {
                     _currentData.Add(new CombinationEntry
                     {
-                        Key1 = entry.Key[0] == '1',
-                        Key2 = entry.Key.Length > 1 && entry.Key[1] == '1',
-                        Key3 = entry.Key.Length > 2 && entry.Key[2] == '1',
+                        RadioKey1 = entry.Key[0] == '1',
+                        RadioKey2 = entry.Key.Length > 1 && entry.Key[1] == '1',
+                        RadioKey3 = entry.Key.Length > 2 && entry.Key[2] == '1',
                         IsAlteration = true,
                         AlterationValue = entry.Value
                     });
                 }
+
                 _buttonStateService.LoadSet(_filePath, setName);
             }
         }
@@ -100,6 +104,9 @@ namespace MIDIMingle
             if (sender is Button btn && btn.Tag is string tag && tag == "Alteration")
             {
                 entry.IsAlteration = true;
+            } else
+            {
+                entry.IsAlteration = false;
             }
             _currentData.Add(entry);
         }
@@ -123,9 +130,9 @@ namespace MIDIMingle
                 foreach (var entry in _currentData)
                 {
                     string keyCombination =
-                        (entry.Key1 ? "1" : "0") +
-                        (entry.Key2 ? "1" : "0") +
-                        (entry.Key3 ? "1" : "0");
+                ((entry.Key1 || entry.RadioKey1) ? "1" : "0") +
+                ((entry.Key2 || entry.RadioKey2) ? "1" : "0") +
+                ((entry.Key3 || entry.RadioKey3) ? "1" : "0");
 
                     if (entry.IsAlteration.HasValue && entry.IsAlteration.Value)
                     {
@@ -145,12 +152,60 @@ namespace MIDIMingle
             }
         }
 
-        private class SetData
+        private void OnAddSet(object sender, RoutedEventArgs e)
         {
-            public Dictionary<string, int> Combinations { get; set; } = new();
-            public Dictionary<string, int> Alterations { get; set; } = new();
+            var newSetName = Microsoft.VisualBasic.Interaction.InputBox("Enter the new set name:", "New Set", "");
+            if (string.IsNullOrEmpty(newSetName))
+                return;
+
+            if (_allData.Sets.ContainsKey(newSetName))
+            {
+                MessageBox.Show("Set name already exists.");
+                return;
+            }
+
+            _allData.Sets[newSetName] = new SetData();
+            var updatedJson = JsonConvert.SerializeObject(_allData, Formatting.Indented);
+            File.WriteAllText(_filePath, updatedJson);
+            LoadData();
+            SetsComboBox.SelectedItem = newSetName;
         }
 
-        
+        private void OnDeleteSet(object sender, RoutedEventArgs e)
+        {
+            if (SetsComboBox.SelectedItem is string setName)
+            {
+                var result = MessageBox.Show($"Are you sure you want to delete the set '{setName}'?", "Delete Confirmation", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
+                {
+                    _allData.Sets.Remove(setName);
+                    var updatedJson = JsonConvert.SerializeObject(_allData, Formatting.Indented);
+                    File.WriteAllText(_filePath, updatedJson);
+                    LoadData();
+                    SetsComboBox.SelectedItem = 0;
+                }
+            }
+        }
+
+        private void OnIsAlterationChanged(object sender, RoutedEventArgs e)
+        {
+            var checkbox = sender as CheckBox;
+            var combinationEntry = checkbox?.DataContext as CombinationEntry;
+            if (combinationEntry != null)
+            {
+                combinationEntry.Key1 = false;
+                combinationEntry.Key2 = false;
+                combinationEntry.Key3 = false;
+                combinationEntry.RadioKey1 = false;
+                combinationEntry.RadioKey2 = false;
+                combinationEntry.RadioKey3 = false;
+            }
+        }
+
+
+
+
+
+
     }
 }

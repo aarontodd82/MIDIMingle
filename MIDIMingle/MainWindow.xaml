@@ -58,7 +58,8 @@
         <Label Content="Currently Playing MIDI Note:" Grid.Row="4"/>
         <Label Name="MidiNoteLabel" Grid.Row="4" HorizontalAlignment="Right" Margin="0,0,20,10" Content="None"/>
 
-
+        <!-- Key Delay -->
+        <Label Content="Key Delay:" Grid.Row="5"/>
         <xctk:IntegerUpDown Name="DebounceTimeUpDown" 
                     Minimum="0" 
                     Maximum="100" 

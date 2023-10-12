@@ -23,21 +23,45 @@
                     <GridViewColumn Header="Key 1">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="{Binding Key1}"/>
+                                <Grid>
+                                    <!-- The CheckBox will be visible when IsAlteration is false -->
+                                    <CheckBox IsChecked="{Binding Key1}" Visibility="{Binding IsAlteration, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+
+                                    <!-- The RadioButton will be visible when IsAlteration is true -->
+                                   
+                                        <RadioButton IsChecked="{Binding RadioKey1}" GroupName="{Binding GroupName}" Visibility="{Binding IsAlteration, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    
+                                </Grid>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Header="Key 2">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="{Binding Key2}"/>
+                                <Grid>
+                                    <!-- The CheckBox will be visible when IsAlteration is false -->
+                                    <CheckBox IsChecked="{Binding Key2}" Visibility="{Binding IsAlteration, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+
+                                    <!-- The RadioButton will be visible when IsAlteration is true -->
+                                    
+                                        <RadioButton IsChecked="{Binding RadioKey2}" GroupName="{Binding GroupName}" Visibility="{Binding IsAlteration, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    
+                                </Grid>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Header="Key 3">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="{Binding Key3}"/>
+                                <Grid>
+                                    <!-- The CheckBox will be visible when IsAlteration is false -->
+                                    <CheckBox IsChecked="{Binding Key3}" Visibility="{Binding IsAlteration, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+
+                                    <!-- The RadioButton will be visible when IsAlteration is true -->
+                                    
+                                        <RadioButton IsChecked="{Binding RadioKey3}" GroupName="{Binding GroupName}" Visibility="{Binding IsAlteration, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    
+                                </Grid>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
@@ -58,7 +82,7 @@
                     <GridViewColumn Header="Is Alteration">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="{Binding IsAlteration}" />
+                                <CheckBox IsChecked="{Binding IsAlteration}" Checked="OnIsAlterationChanged" Unchecked="OnIsAlterationChanged"/>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
@@ -75,6 +99,8 @@
         
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+            <Button Content="New Set" Click="OnAddSet" Width="100" Margin="0 0 10 0"/>
+            <Button Content="Delete Set" Click="OnDeleteSet" Width="100" Margin="0 0 10 0"/>
             <Button Content="Add Alteration" Click="OnAddEntryRow" Width="100" Margin="0 0 10 0" Tag="Alteration"/>
             <Button Content="Add Combination" Click="OnAddEntryRow" Width="100" Margin="0 0 10 0"/>
             <Button Content="Apply" Click="OnApply" Width="100"/>

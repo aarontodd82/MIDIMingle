@@ -78,10 +78,17 @@ namespace MIDIMingle
             Trace.WriteLine($"MIDI Note: {midiNote}");
 
             midiNote = _midiService.PlayMidiNote(midiNote);
+            string noteName = MidiUtility.MidiNoteToNoteName(midiNote);
 
             Dispatcher.Invoke(() =>
             {
-                MidiNoteLabel.Content = midiNote.ToString();
+                if (midiNote.HasValue)
+                {
+                    MidiNoteLabel.Content = noteName + " (" + midiNote.ToString() + ")";
+                } else
+                {
+                        MidiNoteLabel.Content = "None";
+                    }
             });
 
             

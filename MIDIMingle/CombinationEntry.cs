@@ -1,13 +1,21 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 
 public class CombinationEntry : INotifyPropertyChanged
 {
     private bool _key1;
     private bool _key2;
     private bool _key3;
+
+    private bool _radioKey1;
+    private bool _radioKey2;
+    private bool _radioKey3;
+
     private int _midiNote;
     private bool? _isAlteration;
     private int? _alterationValue;
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string GroupName => Id.ToString();
 
     public bool Key1
     {
@@ -44,6 +52,45 @@ public class CombinationEntry : INotifyPropertyChanged
             {
                 _key3 = value;
                 OnPropertyChanged(nameof(Key3));
+            }
+        }
+    }
+
+    public bool RadioKey1
+    {
+        get { return _radioKey1; }
+        set
+        {
+            if (_radioKey1 != value)
+            {
+                _radioKey1 = value;
+                OnPropertyChanged(nameof(RadioKey1));
+            }
+        }
+    }
+
+    public bool RadioKey2
+    {
+        get { return _radioKey2; }
+        set
+        {
+            if (_radioKey2 != value)
+            {
+                _radioKey2 = value;
+                OnPropertyChanged(nameof(RadioKey2));
+            }
+        }
+    }
+
+    public bool RadioKey3
+    {
+        get { return _radioKey3; }
+        set
+        {
+            if (_radioKey3 != value)
+            {
+                _radioKey3 = value;
+                OnPropertyChanged(nameof(RadioKey3));
             }
         }
     }
