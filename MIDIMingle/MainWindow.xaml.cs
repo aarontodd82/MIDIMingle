@@ -34,7 +34,7 @@ namespace MIDIMingle
 
             _arduinoService = arduinoService ?? throw new ArgumentNullException(nameof(arduinoService));
             Task.Run(() => _arduinoService.InitializeAsync());
-            _arduinoService.DataReceivedEvent += HandleArduino_DataReceivedEvent;
+            _arduinoService.OnDataReceived += HandleArduino_DataReceivedEvent;
             _arduinoService.ConnectedEvent += HandleConnectionStatus;
             _arduinoService.ConnectedEvent += OnArduinoConnected;
 
@@ -67,15 +67,17 @@ namespace MIDIMingle
             _buttonStateService.LoadSet(fullPath, lastSet);
         }
 
-        private void HandleArduino_DataReceivedEvent(object sender, bool[] buttonStates)
+        private void HandleArduino_DataReceivedEvent(object sender, ReceivedData data)
         {
-            PlayMidiNoteFromButtons(buttonStates);
+            PlayMidiNoteFromButtons(data.ButtonStates, data.Octave);
         }
 
-        private void PlayMidiNoteFromButtons(bool[] buttonStates)
+        private void PlayMidiNoteFromButtons(bool[] buttonStates, int octave)
         {
             var midiNote = _buttonStateService.GetMidiNoteFromButtons(buttonStates);
             Trace.WriteLine($"MIDI Note: {midiNote}");
+
+            midiNote += (octave * 12);  // adjust the midiNote with the octave value
 
             midiNote = _midiService.PlayMidiNote(midiNote);
             string noteName = MidiUtility.MidiNoteToNoteName(midiNote);
@@ -85,13 +87,12 @@ namespace MIDIMingle
                 if (midiNote.HasValue)
                 {
                     MidiNoteLabel.Content = noteName + " (" + midiNote.ToString() + ")";
-                } else
+                }
+                else
                 {
-                        MidiNoteLabel.Content = "None";
-                    }
+                    MidiNoteLabel.Content = "None";
+                }
             });
-
-            
         }
 
         private void MidiChannelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

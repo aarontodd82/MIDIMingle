@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace MIDIMingle
 {
+    public delegate void DataReceivedEventHandler(object sender, ReceivedData e);
+
     public interface IArduinoService
     {
-        event EventHandler<bool[]> DataReceivedEvent;
+        event DataReceivedEventHandler OnDataReceived;
         event EventHandler<bool> ConnectedEvent;
 
         void disconnectArduino();

@@ -25,8 +25,10 @@ namespace MIDIMingle
         private Queue<Action<string>> responseHandlers = new Queue<Action<string>>();
         private StringBuilder receivedDataBuffer = new StringBuilder();
 
-        public event EventHandler<bool[]> DataReceivedEvent;
+        public event DataReceivedEventHandler OnDataReceived;
         public event EventHandler<bool> ConnectedEvent;
+
+        
 
         public bool Connected { get; private set; } = false;
 
@@ -241,20 +243,38 @@ namespace MIDIMingle
 
         private void ProcessDataLine(string line)
         {
-            if (line.Length == 3)
+            if (line.Length >= 3)
             {
+                int octaveValue = 0;
+                bool[] localButtonStates = new bool[3];
+
+                // Extract the button states
                 for (int i = 0; i < 3; i++)
                 {
-                    buttonStates[i] = line[i] == '0';
+                    localButtonStates[i] = line[i] == '0';
                 }
 
-                OnDataReceived(buttonStates);
+                // Extract the octave if present
+                if (line.Contains("oct:"))
+                {
+                    int startIndex = line.IndexOf("oct:") + 4;
+                    if (int.TryParse(line.Substring(startIndex), out int parsedOctave))
+                    {
+                        octaveValue = parsedOctave;
+                    }
+                }
+
+                RaiseDataReceivedEvent(new ReceivedData { ButtonStates = localButtonStates, Octave = octaveValue });
             }
         }
 
-        protected virtual void OnDataReceived(bool[] data)
+        protected virtual void RaiseDataReceivedEvent(ReceivedData data)
         {
-            DataReceivedEvent?.Invoke(this, data);
+            OnDataReceived?.Invoke(this, new ReceivedData
+            {
+                ButtonStates = data.ButtonStates,
+                Octave = data.Octave
+            });
         }
 
         protected virtual void OnConnectionChanged(bool isConnected)
