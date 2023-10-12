@@ -17,7 +17,11 @@
 
         <ComboBox x:Name="SetsComboBox" SelectionChanged="OnSetSelected" Width="150" Margin="10"/>
 
-        <ListView x:Name="CombinationsListView" Grid.Row="1" Margin="10">
+        <ListView x:Name="CombinationsListView" Grid.Row="1" Margin="10" AllowDrop="True"
+                  PreviewMouseLeftButtonDown="CombinationsListView_PreviewMouseLeftButtonDown"
+                    PreviewMouseMove="CombinationsListView_PreviewMouseMove"
+                    Drop="CombinationsListView_Drop"
+                  ItemsSource="{Binding CombinationEntries}">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Key 1">

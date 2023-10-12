@@ -1,23 +1,42 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace MIDIMingle
 {
-    public partial class FingeringChartEditor : Window
+    public partial class FingeringChartEditor : Window, INotifyPropertyChanged
     {
         private string _filePath;
         private FingeringData _allData;
         private ObservableCollection<CombinationEntry> _currentData;
         private string _selectedSetName;
         private IButtonStateService _buttonStateService;
+        private Point _dragStartPoint;
+        private ListViewItem _draggedItem;
+        public event PropertyChangedEventHandler PropertyChanged;
+        private ObservableCollection<CombinationEntry> combinationEntries = new ObservableCollection<CombinationEntry>();
+
+        public ObservableCollection<CombinationEntry> CombinationEntries
+        {
+            get { return combinationEntries; }
+            set
+            {
+                combinationEntries = value;
+                OnPropertyChanged(nameof(CombinationEntries));
+            }
+        }
 
         public FingeringChartEditor(string filePath, string selectedSetName, IButtonStateService buttonStateService)
         {
             InitializeComponent();
+            this.DataContext = this;
             _filePath = filePath;
             _selectedSetName = selectedSetName;
             _buttonStateService = buttonStateService;
@@ -116,6 +135,7 @@ namespace MIDIMingle
             if (sender is Button button && button.DataContext is CombinationEntry entry)
             {
                 _currentData.Remove(entry);
+                _draggedItem = null;  // Reset the dragged item after deletion.
             }
         }
 
@@ -202,7 +222,81 @@ namespace MIDIMingle
             }
         }
 
+        private void CombinationsListView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _dragStartPoint = e.GetPosition(null);
+            _draggedItem = FindAncestor<ListViewItem>((DependencyObject)e.OriginalSource);
+        }
 
+        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
+        {
+            do
+            {
+                if (current is T)
+                {
+                    return (T)current;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            while (current != null);
+            return null;
+        }
+
+        private void CombinationsListView_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            Point point = e.GetPosition(null);
+            Vector diff = _dragStartPoint - point;
+
+            if (e.LeftButton == MouseButtonState.Pressed &&
+                Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+            {
+                if (_draggedItem == null || _draggedItem.DataContext == null) return;
+
+                DragDrop.DoDragDrop(CombinationsListView, _draggedItem.DataContext, DragDropEffects.Move);
+            }
+        }
+
+        private void CombinationsListView_Drop(object sender, DragEventArgs e)
+        {
+            if (_draggedItem == null) return;
+
+            var data = _draggedItem.DataContext as CombinationEntry;
+            var itemsSource = CombinationsListView.ItemsSource as ObservableCollection<CombinationEntry>;
+            if (itemsSource == null) return;
+
+            itemsSource.Remove(data);
+
+            var dropPosition = e.GetPosition(CombinationsListView);
+            var lastItem = FindAncestor<ListViewItem>((DependencyObject)CombinationsListView.ItemContainerGenerator.ContainerFromIndex(itemsSource.Count - 1));
+
+            if (lastItem != null && dropPosition.Y > lastItem.TranslatePoint(new Point(0, lastItem.ActualHeight), CombinationsListView).Y)
+            {
+                itemsSource.Add(data);
+                _draggedItem = null;
+                return;
+            }
+
+            var dropTarget = FindAncestor<ListViewItem>((DependencyObject)e.OriginalSource);
+
+            if (dropTarget != null)
+            {
+                int index = itemsSource.IndexOf(dropTarget.DataContext as CombinationEntry);
+                itemsSource.Insert(index, data);
+            }
+            else
+            {
+                itemsSource.Add(data);
+            }
+
+            _draggedItem = null;
+        }
+
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
 
 
