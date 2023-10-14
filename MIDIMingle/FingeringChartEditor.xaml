@@ -14,8 +14,16 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-
-        <ComboBox x:Name="SetsComboBox" SelectionChanged="OnSetSelected" Width="150" Margin="10"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+            <ComboBox x:Name="SetsComboBox" SelectionChanged="OnSetSelected" Width="150" Margin="10"/>
+            <ComboBox x:Name="OctavesComboBox" Width="150" SelectionChanged="OctavesComboBox_SelectionChanged" Margin="10">
+                <ComboBoxItem Content="2"/>
+                <ComboBoxItem Content="3"/>
+                <ComboBoxItem Content="4"/>
+                <ComboBoxItem Content="5"/>
+                <ComboBoxItem Content="6"/>
+            </ComboBox>
+        </StackPanel>
 
         <ListView x:Name="CombinationsListView" Grid.Row="1" Margin="10" AllowDrop="True"
                   PreviewMouseLeftButtonDown="CombinationsListView_PreviewMouseLeftButtonDown"
@@ -102,6 +110,7 @@
         </ListView>
         
 
+        
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
             <Button Content="New Set" Click="OnAddSet" Width="100" Margin="0 0 10 0"/>
             <Button Content="Delete Set" Click="OnDeleteSet" Width="100" Margin="0 0 10 0"/>

@@ -18,5 +18,7 @@ namespace MIDIMingle
         Task InitializeAsync();
         Task<int> GetDebounceTimeAsync();
         Task SetDebounceTimeAsync(int debounceTime);
+        Task<int> GetOctavesAsync();
+        Task SetOctavesAsync(int debounceTime);
     }
 }

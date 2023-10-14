@@ -18,6 +18,7 @@ namespace MIDIMingle
         private ObservableCollection<CombinationEntry> _currentData;
         private string _selectedSetName;
         private IButtonStateService _buttonStateService;
+        private IArduinoService arduinoService;
         private Point _dragStartPoint;
         private ListViewItem _draggedItem;
         public event PropertyChangedEventHandler PropertyChanged;
@@ -26,26 +27,54 @@ namespace MIDIMingle
         public ObservableCollection<CombinationEntry> CombinationEntries
         {
             get { return combinationEntries; }
-            set
+        
+                    set
             {
                 combinationEntries = value;
                 OnPropertyChanged(nameof(CombinationEntries));
             }
         }
 
-        public FingeringChartEditor(string filePath, string selectedSetName, IButtonStateService buttonStateService)
+        public FingeringChartEditor(string filePath, string selectedSetName, IButtonStateService buttonStateService, IArduinoService arduinoService)
         {
             InitializeComponent();
             this.DataContext = this;
             _filePath = filePath;
             _selectedSetName = selectedSetName;
             _buttonStateService = buttonStateService;
+            this.arduinoService = arduinoService;
             _currentData = new ObservableCollection<CombinationEntry>();
             CombinationsListView.ItemsSource = _currentData;
             
             LoadData();
+            InitGetOctaves();
+
+
+
+
+        }
+
+        private async void InitGetOctaves()
+        {
+            var octaves = await arduinoService.GetOctavesAsync();
+            Dispatcher.Invoke(() => OctavesComboBox.SelectedIndex = octaves - 2);
             
         }
+
+        private async void OctavesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ComboBox comboBox = sender as ComboBox; // Cast the sender to ComboBox
+            int selectedIndex = comboBox.SelectedIndex; // Get the selected index
+
+           
+                await arduinoService.SetOctavesAsync(selectedIndex + 2);
+            
+        }
+
+
+
+
+        
 
         private void LoadSelectedSet()
         {

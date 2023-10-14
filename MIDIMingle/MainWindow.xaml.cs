@@ -129,7 +129,7 @@ namespace MIDIMingle
             string fullPath = Path.Combine(basePath, "Combinations.json");
             var jsonData = File.ReadAllText(fullPath);
             var allSetsData = JsonConvert.DeserializeObject<AllSetsData>(jsonData);
-            var editor = new FingeringChartEditor(fullPath, allSetsData.LastSelectedSet, _buttonStateService);
+            var editor = new FingeringChartEditor(fullPath, allSetsData.LastSelectedSet, _buttonStateService, _arduinoService);
             editor.ShowDialog();
         }
 

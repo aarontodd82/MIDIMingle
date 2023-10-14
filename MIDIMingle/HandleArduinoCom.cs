@@ -202,7 +202,7 @@ namespace MIDIMingle
             await SendCommandAndWaitForResponse($"SetDebounceTime:{milliseconds}", null);
         }
 
-        public async Task<int> GetDebounceTimeAsync()
+         public async Task<int> GetDebounceTimeAsync()
         {
             var tcs = new TaskCompletionSource<int>();
 
@@ -212,6 +212,33 @@ namespace MIDIMingle
                 {
                     int result = int.Parse(response);
                     Trace.WriteLine($"Debounce time from arduino handler: {result}");
+                    tcs.SetResult(result);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Error parsing response: {ex.Message}");
+                    tcs.SetException(ex);
+                }
+            });
+
+            return await tcs.Task;
+        }
+
+        public async Task SetOctavesAsync(int numOfOctaves)
+        {
+            await SendCommandAndWaitForResponse($"SetOctaves:{numOfOctaves}", null);
+        }
+
+        public async Task<int> GetOctavesAsync()
+        {
+            var tcs = new TaskCompletionSource<int>();
+
+            await SendCommandAndWaitForResponse("GetOctaves", (response) =>
+            {
+                try
+                {
+                    int result = int.Parse(response);
+                    Trace.WriteLine($"Num of octaves from arduino handler: {result}");
                     tcs.SetResult(result);
                 }
                 catch (Exception ex)
